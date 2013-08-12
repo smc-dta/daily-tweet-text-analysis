@@ -12,9 +12,6 @@ txtapr30.df <- apr30.df[1,]
 #turn into corpus
 apr30.corpus <- Corpus(DataframeSource(data.frame(txtapr30.df)))
 
-#writeCorpus so it uses less RAM
-writeCorpus(apr30.corpus)
-
 apr30.corpus <- tm_map(apr30.corpus, tolower)
 apr30.corpus <- tm_map(apr30.corpus, function(x) removeWords(x, stopwords("english")))
 apr30.corpus <- tm_map(apr30.corpus, stemDocument)
@@ -27,3 +24,33 @@ inspect(tdmapr30[1:5, 100:105])
 m <- inspect(tdm)
 DF <- as.data.frame(m, stringsAsFactors = FALSE)
 write.table(DF)
+
+#Reduce size by filtering first for keyword
+#Now working with a different corpus
+goldTweets <- tm_filter(apr1.corpus, pattern = "gold")
+goldTweets
+	#stop and inspect goldTweets
+writeCorpus(goldTweets)
+tdmGold <- TermDocumentMatrix(goldTweets)
+
+gldTweets <- tm_filter(apr1.corpus, pattern = "gld")
+gldTweets
+	#stop and inspect gldTweets
+writeCorpus(gldTweets)
+tdmGld <- TermDocumentMatrix(gldTweets)
+
+	#finds correlated terms
+goldAssoc <- findAssocs(tdmGold, 'gold', 0.1)
+goldAssoc.m <- as.matrix(goldAssoc, row.names=TRUE)
+write.csv(goldAssoc.m, "goldAssoc.csv", row.names=TRUE)
+gldAssoc <- findAssocs(tdmGld, 'gld', 0.1)
+gldAssoc.m <- as.matrix(gldAssoc, row.names=TRUE)
+write.csv(gldAssoc.m, "gldAssoc.csv", row.names=TRUE)
+
+	#finds number of times terms are mentioned in gold subset of tdm
+tdmGold.m <- as.matrix(tdmGold, row.names=TRUE)
+v1<- sort(rowSums(tdmGold.m),decreasing=TRUE)
+write.csv(v1, "GoldFreqTerms.csv", row.names=TRUE)
+tdmGld.m <- as.matrix(tdmGld, row.names=TRUE)
+v1<- sort(rowSums(tdmGld.m),decreasing=TRUE)
+write.csv(v1, "GldFreqTerms.csv", row.names=TRUE)
